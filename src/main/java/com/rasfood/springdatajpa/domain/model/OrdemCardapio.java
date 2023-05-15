@@ -3,6 +3,8 @@ package com.rasfood.springdatajpa.domain.model;
 import java.io.Serializable;
 import java.math.BigDecimal;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -30,6 +32,7 @@ public class OrdemCardapio implements Serializable {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ordem_id")
+    @JsonIgnoreProperties({"ordemCardapios"})
     private Ordem ordem;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -38,5 +41,5 @@ public class OrdemCardapio implements Serializable {
 
     private BigDecimal valor;
 
-    private Integer quantidade;
+    private Double quantidade;
 }
