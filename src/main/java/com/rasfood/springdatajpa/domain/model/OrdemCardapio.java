@@ -32,7 +32,7 @@ public class OrdemCardapio implements Serializable {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ordem_id")
-    @JsonIgnoreProperties({"ordemCardapios"})
+    @JsonIgnoreProperties({ "ordemCardapios" })
     private Ordem ordem;
 
     @ManyToOne(fetch = FetchType.LAZY)

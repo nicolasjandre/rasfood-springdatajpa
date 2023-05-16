@@ -16,7 +16,6 @@ import com.rasfood.springdatajpa.domain.model.Cliente;
 import com.rasfood.springdatajpa.domain.model.Ordem;
 import com.rasfood.springdatajpa.domain.model.OrdemCardapio;
 import com.rasfood.springdatajpa.domain.repository.CardapioRepository;
-import com.rasfood.springdatajpa.domain.repository.OrdemCardapioRepository;
 import com.rasfood.springdatajpa.domain.repository.OrdemRepository;
 import com.rasfood.springdatajpa.domain.service.CRUD.CRUDService;
 import com.rasfood.springdatajpa.dto.OrdemDto.OrdemRequestDto;
@@ -35,9 +34,6 @@ public class OrdemService implements CRUDService<OrdemRequestDto, OrdemResponseD
     private CardapioRepository cardapioRepository;
 
     @Autowired
-    private OrdemCardapioRepository ordemCardapioRepository;
-
-    @Autowired
     private ModelMapper mapper;
 
     @Override
@@ -47,27 +43,10 @@ public class OrdemService implements CRUDService<OrdemRequestDto, OrdemResponseD
             throw new BadRequestException("Não pode haver um ID nesta requisição");
         }
 
-        Cliente cliente = mapper.map(clienteService.findById(dto.getClienteId()), Cliente.class);
+        Ordem ordem = createOrdemFromDto(dto);
 
-        Ordem ordem = new Ordem(cliente);
-        dto.getCardapios().forEach(cardapioDto -> {
-            Optional<Cardapio> cardapioOpt = cardapioRepository.findById(cardapioDto.getCardapioId());
+        return mapper.map(ordemRepository.save(ordem), OrdemResponseDto.class);
 
-            if (cardapioOpt.isEmpty()) {
-                throw new NotFoundException("Cardapio de id=[" + cardapioDto.getCardapioId() + "] não encontrado");
-            }
-
-            OrdemCardapio ordemCardapio = new OrdemCardapio();
-            ordemCardapio.setCardapio(cardapioOpt.get());
-            ordemCardapio.setValor(cardapioOpt.get().getValor());
-            ordemCardapio.setQuantidade(cardapioDto.getQuantidade());
-
-            ordem.addOrdemCardapio(ordemCardapio);
-        });
-
-        OrdemResponseDto ordemResponseDto = mapper.map(ordemRepository.save(ordem), OrdemResponseDto.class);
-        ordem.getOrdemCardapios().forEach(ordemCardapio -> ordemCardapioRepository.save(ordemCardapio));
-        return ordemResponseDto;
     }
 
     @Override
@@ -96,7 +75,35 @@ public class OrdemService implements CRUDService<OrdemRequestDto, OrdemResponseD
 
     @Override
     public OrdemResponseDto update(OrdemRequestDto dto) {
-        // TODO Auto-generated method stub
-        return null;
+
+        this.findById(dto.getId());
+
+        Ordem ordem = createOrdemFromDto(dto);
+
+        return mapper.map(ordemRepository.save(ordem), OrdemResponseDto.class);
+    }
+
+    private Ordem createOrdemFromDto(OrdemRequestDto dto) {
+
+        Cliente cliente = mapper.map(clienteService.findById(dto.getClienteId()), Cliente.class);
+
+        Ordem ordem = new Ordem(cliente);
+        
+        dto.getCardapios().forEach(cardapioDto -> {
+            Optional<Cardapio> cardapioOpt = cardapioRepository.findById(cardapioDto.getCardapioId());
+
+            if (cardapioOpt.isEmpty()) {
+                throw new NotFoundException("Cardapio de id=[" + cardapioDto.getCardapioId() + "] não encontrado");
+            }
+
+            OrdemCardapio ordemCardapio = new OrdemCardapio();
+            ordemCardapio.setCardapio(cardapioOpt.get());
+            ordemCardapio.setValor(cardapioOpt.get().getValor());
+            ordemCardapio.setQuantidade(cardapioDto.getQuantidade());
+
+            ordem.addOrdemCardapio(ordemCardapio);
+        });
+
+        return ordem;
     }
 }
